@@ -1,0 +1,10 @@
+C:\Users\dex22044\source\repos\P2P_sound\P2P_Sound\bin\Debug\P2P_Sound.exe.config
+C:\Users\dex22044\source\repos\P2P_sound\P2P_Sound\bin\Debug\P2P_Sound.exe
+C:\Users\dex22044\source\repos\P2P_sound\P2P_Sound\bin\Debug\P2P_Sound.pdb
+C:\Users\dex22044\source\repos\P2P_sound\P2P_Sound\bin\Debug\NAudio.dll
+C:\Users\dex22044\source\repos\P2P_sound\P2P_Sound\bin\Debug\NAudio.xml
+C:\Users\dex22044\source\repos\P2P_sound\P2P_Sound\obj\Debug\P2P_Sound.csprojAssemblyReference.cache
+C:\Users\dex22044\source\repos\P2P_sound\P2P_Sound\obj\Debug\P2P_Sound.csproj.CoreCompileInputs.cache
+C:\Users\dex22044\source\repos\P2P_sound\P2P_Sound\obj\Debug\P2P_Sound.csproj.CopyComplete
+C:\Users\dex22044\source\repos\P2P_sound\P2P_Sound\obj\Debug\P2P_Sound.exe
+C:\Users\dex22044\source\repos\P2P_sound\P2P_Sound\obj\Debug\P2P_Sound.pdb

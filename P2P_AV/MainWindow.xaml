@@ -1,0 +1,60 @@
+﻿<Window x:Class="P2P_AV.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:P2P_AV"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="800" Width="1280" Closed="Window_Closed">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Image x:Name="VideoObject" x:FieldModifier="public" Source="C:\Users\dex22044\Desktop\720p.png"/>
+        <Grid Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <StackPanel Grid.Row="0" Orientation="Horizontal" x:Name="StackPanelMenu1">
+                <TextBlock Text="Sound" Margin="3"/>
+                <TextBlock Text="Port:" Margin="3"/>
+                <TextBox Width="60" x:Name="AudioPort" Margin="3"/>
+                <TextBlock Text="IP (only for server):" Margin="3"/>
+                <TextBox Width="60" x:Name="AudioIP" Margin="3"/>
+
+                <RadioButton Checked="SetAudioType" Content="Server" Margin="3" GroupName="AudioType"/>
+                <RadioButton Checked="SetAudioType" Content="Client" Margin="3" GroupName="AudioType"/>
+
+                <Button Click="StartAudio" Content="Start" Margin="3" x:Name="SoundStartBtn"/>
+            </StackPanel>
+
+            <StackPanel Grid.Row="1" Orientation="Horizontal" x:Name="StackPanelMenu2">
+                <TextBlock Text="Video " Margin="3"/>
+                <TextBlock Text="Port:" Margin="3"/>
+                <TextBox Width="60" x:Name="VideoPort" Margin="3"/>
+                <TextBlock Text="IP (only for server):" Margin="3"/>
+                <TextBox Width="60" x:Name="VideoIP" Margin="3"/>
+
+                <RadioButton Checked="SetVideoType" Content="Server" Margin="3" GroupName="VideoType"/>
+                <RadioButton Checked="SetVideoType" Content="Client" Margin="3" GroupName="VideoType"/>
+
+                <Button Click="StartVideo" Content="Start" Margin="3" x:Name="VideoStartBtn"/>
+            </StackPanel>
+            <StackPanel x:Name="IPs" Orientation="Horizontal" Grid.Row="2">
+                <TextBlock Text="Your IPs:" Margin="3"/>
+            </StackPanel>
+
+            <StackPanel Grid.Row="3" Orientation="Horizontal">
+                <Button Content="Hide" Click="HideShowMenu"/>
+                <TextBlock Text="Output volume: " Margin="10 0 0 0"/>
+                <Slider Width="100" Minimum="0" Maximum="1" ValueChanged="Slider_ValueChanged"/>
+                <TextBlock Text="Image quality: " Margin="10 0 0 0"/>
+                <Slider Width="100" Minimum="0" Maximum="100" ValueChanged="Slider_ValueChanged2"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>
