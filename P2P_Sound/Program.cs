@@ -23,7 +23,6 @@ namespace P2P_sound
         static ulong bytesSendCount;
         static ulong bytesSendCountSpeed;
         static DateTime startTime;
-        //static AudioCodec codec;
 
         static void Main(string[] args)
         {
@@ -68,15 +67,6 @@ namespace P2P_sound
                             byte[] buf = new byte[8192];
                             int len = stream.Read(buf, 0, buf.Length);
                             streamOut.AddSamples(buf, 0, len);
-                            //packetCount++;
-                            //
-                            //if (packetCount % 64 == 0)
-                            //{
-                            //    TimeSpan betweenPackets = DateTime.Now - lastPacketTime;
-                            //    PingReply ping = await new Ping().SendPingAsync(((IPEndPoint)ep).Address);
-                            //    Console.WriteLine($"Received {packetCount} packets, avg delay between packets is {Math.Round((int)(betweenPackets.TotalMilliseconds) / 64d, 2)}ms; ping {ping.RoundtripTime}ms");
-                            //    lastPacketTime = DateTime.Now;
-                            //}
                         }
                     }
                     catch (Exception) { }
@@ -100,24 +90,6 @@ namespace P2P_sound
 
         private static void Input_DataAvailable(object sender, WaveInEventArgs e)
         {
-            //using (MemoryStream stream = new MemoryStream(e.Buffer))
-            //{
-            //    byte[] buf = new byte[bufSize];
-            //    int len = 0;
-            //    len = stream.Read(buf, 0, buf.Length);
-            //    for (; len > 0; len = stream.Read(buf, 0, buf.Length))
-            //    {
-            //        udp.SendTo(buf, len, SocketFlags.None, endPoint);
-            //        bytesSendCount += (ulong)len;
-            //        packetSendCount++;
-            //        if (packetSendCount % 64 == 0)
-            //        {
-            //            PingReply ping = new Ping().SendPingAsync(endPoint.Address).GetAwaiter().GetResult();
-            //            double total_s = (DateTime.Now - startTime).TotalSeconds;
-            //            Console.WriteLine($"Sent {packetSendCount} packets, total {bytesSendCount} bytes, avg speed {Math.Round(bytesSendCount / total_s, 2)}Bps, ping {ping.RoundtripTime}ms");
-            //        }
-            //    }
-            //}
             stream.Write(e.Buffer, 0, e.BytesRecorded);
         }
     }

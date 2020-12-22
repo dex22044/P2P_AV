@@ -35,3 +35,5 @@ C:\Users\dex22044\source\repos\P2P_sound\P2P_AV\bin\Debug\SharpDX.Mathematics.pd
 C:\Users\dex22044\source\repos\P2P_sound\P2P_AV\bin\Debug\SharpDX.Mathematics.xml
 C:\Users\dex22044\source\repos\P2P_sound\P2P_AV\bin\Debug\SharpDX.MediaFoundation.pdb
 C:\Users\dex22044\source\repos\P2P_sound\P2P_AV\bin\Debug\SharpDX.MediaFoundation.xml
+C:\Users\dex22044\source\repos\P2P_sound\P2P_AV\obj\Debug\SettingsWindow.g.cs
+C:\Users\dex22044\source\repos\P2P_sound\P2P_AV\obj\Debug\SettingsWindow.baml

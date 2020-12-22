@@ -28,11 +28,14 @@ namespace P2P_AV
         int arole;
         int vrole;
         public static MainWindow current;
+        static SettingsWindow settingsWin;
 
         public MainWindow()
         {
             InitializeComponent();
             current = this;
+
+            settingsWin = new SettingsWindow();
 
             NetworkInterface[] interfaces = NetworkInterface.GetAllNetworkInterfaces();
             foreach(NetworkInterface @interface in interfaces)
@@ -65,32 +68,18 @@ namespace P2P_AV
             btn.IsEnabled = false;
             //VideoStartBtn.IsEnabled = false;
             string aip = AudioIP.Text;
-            string aport = AudioPort.Text;
+            string aport = settingsWin.Connection_AudioPort.Text;
             new Thread(new ThreadStart(() =>
             {
                 AudioStreamer.MainAsync(arole, 8192, $"{aip}:{aport}", Convert.ToInt32(aport));
             })).Start();
-        }
 
-        private void SetVideoType(object sender, RoutedEventArgs e)
-        {
-            RadioButton btn = (RadioButton)sender;
-            if ((string)btn.Content == "Server") vrole = 1;
-            if ((string)btn.Content == "Client") vrole = 0;
-        }
-
-        private void StartVideo(object sender, RoutedEventArgs e)
-        {
-            Button btn = (Button)sender;
-            btn.IsEnabled = false;
-            //SoundStartBtn.IsEnabled = false;
-            string vip = VideoIP.Text;
-            string vport = VideoPort.Text;
+            string vip = AudioIP.Text;
+            string vport = settingsWin.Connection_VideoPort.Text;
             new Thread(new ThreadStart(() =>
             {
-                VideoStreamer.MainAsync(vrole, vip, Convert.ToInt32(vport));
+                VideoStreamer.MainAsync(arole, vip, Convert.ToInt32(vport));
             })).Start();
-            btn.IsEnabled = false;
         }
 
         private void Window_Closed(object sender, EventArgs e)
@@ -107,7 +96,8 @@ namespace P2P_AV
 
                 IPs.Height = 0;
                 StackPanelMenu1.Height = 0;
-                StackPanelMenu2.Height = 0;
+                //StackPanelMenu2.Height = 0;
+                //StackPanelMenu3.Height = 0;
             }
             else
             {
@@ -115,7 +105,8 @@ namespace P2P_AV
 
                 IPs.Height = double.NaN;
                 StackPanelMenu1.Height = double.NaN;
-                StackPanelMenu2.Height = double.NaN;
+                //StackPanelMenu2.Height = double.NaN;
+                //StackPanelMenu3.Height = double.NaN;
             }
         }
 
@@ -127,6 +118,23 @@ namespace P2P_AV
         private void Slider_ValueChanged2(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             VideoStreamer.encodeQuality = (long)e.NewValue;
+        }
+
+        private void VideoObject_KeyDown(object sender, KeyEventArgs e)
+        {
+            //KeyboardData.Text = e.Key.ToString();
+        }
+
+        private void Window_MouseMove(object sender, MouseEventArgs e)
+        {
+            Point position = e.GetPosition(VideoObject);
+
+            //MouseData.Text = $"{position.X} {position.Y} {e.LeftButton} {e.RightButton} {e.MiddleButton}";
+        }
+
+        private void OpenSettings(object sender, RoutedEventArgs e)
+        {
+            settingsWin.Show();
         }
     }
 }
