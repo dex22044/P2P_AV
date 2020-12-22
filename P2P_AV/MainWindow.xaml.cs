@@ -35,7 +35,7 @@ namespace P2P_AV
             InitializeComponent();
             current = this;
 
-            settingsWin = new SettingsWindow();
+            settingsWin = new SettingsWindow(true, this);
 
             NetworkInterface[] interfaces = NetworkInterface.GetAllNetworkInterfaces();
             foreach(NetworkInterface @interface in interfaces)
@@ -76,6 +76,8 @@ namespace P2P_AV
 
             string vip = AudioIP.Text;
             string vport = settingsWin.Connection_VideoPort.Text;
+            VideoStreamer.width = Convert.ToInt32(settingsWin.Compression_ImageWidth.Text);
+            VideoStreamer.height = Convert.ToInt32(settingsWin.Compression_ImageHeight.Text);
             new Thread(new ThreadStart(() =>
             {
                 VideoStreamer.MainAsync(arole, vip, Convert.ToInt32(vport));

@@ -7,9 +7,25 @@
         mc:Ignorable="d"
         Title="SettingsWindow" Height="500" Width="400" Closing="Window_Closing">
     <Grid>
-        <TabControl>
+        <TabControl x:Name="MainTabControl">
             <TabItem Header="Общие">
-                бла-бла-бла
+                <Grid Margin="5">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Text="Тема:" Grid.Row="0" Grid.Column="0" Margin="5"/>
+                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal">
+                        <RadioButton Content="Тёмная" Margin="5" Checked="Common_ChangedTheme" GroupName="Common_Theme" x:Name="Common_DarkThemeRadioButton"/>
+                        <RadioButton Content="Светлая" Margin="5" Checked="Common_ChangedTheme" GroupName="Common_Theme" x:Name="Common_LightThemeRadioButton"/>
+                    </StackPanel>
+                </Grid>
             </TabItem>
             <TabItem Header="Соединение">
                 <Grid Margin="5">
@@ -28,6 +44,33 @@
 
                     <TextBlock Text="Порт видео:" Grid.Row="1" Grid.Column="0" Margin="5"/>
                     <TextBox x:Name="Connection_VideoPort" Grid.Row="1" Grid.Column="1" Margin="5" Text="8091"/>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="Сжатие">
+                <Grid Margin="5">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Text="Тип сжатия:" Grid.Row="0" Grid.Column="0" Margin="5"/>
+                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal">
+                        <RadioButton Content="JPEG" Margin="5" Checked="Compression_ChangedCompressionType" GroupName="Compression_CompressionType" IsChecked="True"/>
+                    </StackPanel>
+
+                    <TextBlock Text="Разрешение сжатия:" Grid.Row="1" Grid.Column="0" Margin="5"/>
+                    <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal">
+                        <TextBlock Text="Ширина:" Margin="5"/>
+                        <TextBox x:Name="Compression_ImageWidth" Width="50" Margin="5" Text="1366"/>
+                        <TextBlock Text="Высота:" Margin="5"/>
+                        <TextBox x:Name="Compression_ImageHeight" Width="50" Margin="5" Text="768"/>
+                    </StackPanel>
                 </Grid>
             </TabItem>
         </TabControl>

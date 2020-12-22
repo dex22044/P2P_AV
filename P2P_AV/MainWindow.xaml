@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:P2P_AV"
         mc:Ignorable="d"
-        Title="MainWindow" Height="800" Width="1280" Closed="Window_Closed" KeyDown="VideoObject_KeyDown" MouseMove="Window_MouseMove" MouseDown="Window_MouseMove" MouseUp="Window_MouseMove">
+        Title="MainWindow" Height="800" Width="1280" Closing="Window_Closed" KeyDown="VideoObject_KeyDown" MouseMove="Window_MouseMove" MouseDown="Window_MouseMove" MouseUp="Window_MouseMove">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -29,8 +29,8 @@
                 <TextBlock Text="IP (only for server):" Margin="3"/>
                 <TextBox Width="100" x:Name="AudioIP" Margin="3"/>
 
-                <RadioButton Checked="SetAudioType" Content="Server" Margin="3" GroupName="AudioType"/>
-                <RadioButton Checked="SetAudioType" Content="Client" Margin="3" GroupName="AudioType"/>
+                <RadioButton Checked="SetAudioType" Content="Server" Margin="3" GroupName="AudioType" x:Name="AudioType_Server_RadioButton"/>
+                <RadioButton Checked="SetAudioType" Content="Client" Margin="3" GroupName="AudioType" x:Name="AudioType_Client_RadioButton"/>
 
                 <Button Click="StartAudio" Content="Start" Margin="3" x:Name="SoundStartBtn"/>
             </StackPanel>
@@ -40,7 +40,7 @@
             </StackPanel>
 
             <StackPanel Grid.Row="4" Orientation="Horizontal">
-                <Button Content="Hide" Click="HideShowMenu"/>
+                <Button Content="Hide" Click="HideShowMenu" x:Name="HideBtn"/>
                 <TextBlock Text="Output volume: " Margin="10 0 0 0"/>
                 <Slider Width="100" Minimum="0" Maximum="1" ValueChanged="Slider_ValueChanged"/>
                 <TextBlock Text="Image quality: " Margin="10 0 0 0"/>
