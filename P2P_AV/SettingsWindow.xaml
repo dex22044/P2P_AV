@@ -52,6 +52,7 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                         <RowDefinition/>
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
@@ -62,6 +63,7 @@
                     <TextBlock Text="Тип сжатия:" Grid.Row="0" Grid.Column="0" Margin="5"/>
                     <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal">
                         <RadioButton Content="JPEG" Margin="5" Checked="Compression_ChangedCompressionType" GroupName="Compression_CompressionType" IsChecked="True"/>
+                        <RadioButton Content="H264" Margin="5" Checked="Compression_ChangedCompressionType" GroupName="Compression_CompressionType" IsChecked="True"/>
                     </StackPanel>
 
                     <TextBlock Text="Разрешение сжатия:" Grid.Row="1" Grid.Column="0" Margin="5"/>
@@ -70,6 +72,12 @@
                         <TextBox x:Name="Compression_ImageWidth" Width="50" Margin="5" Text="1366"/>
                         <TextBlock Text="Высота:" Margin="5"/>
                         <TextBox x:Name="Compression_ImageHeight" Width="50" Margin="5" Text="768"/>
+                    </StackPanel>
+
+                    <TextBlock Text="Битрейт (только H264):" Grid.Row="2" Grid.Column="0" Margin="5"/>
+                    <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal">
+                        <Slider x:Name="Compression_H264VideoBitrate" Width="170" ValueChanged="Compression_H264VideoBitrate_ValueChanged" Minimum="500" Maximum="15000"/>
+                        <TextBlock x:Name="Compression_H264VideoBitrateText" Text="500kbps"/>
                     </StackPanel>
                 </Grid>
             </TabItem>

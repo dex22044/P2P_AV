@@ -48,7 +48,8 @@ namespace P2P_AV
 
         private void Compression_ChangedCompressionType(object sender, RoutedEventArgs e)
         {
-
+            RadioButton s = (RadioButton)sender;
+            VideoStreamer.codecName = s.Content as string;
         }
 
         private void Common_ChangedTheme(object sender, RoutedEventArgs e)
@@ -99,6 +100,15 @@ namespace P2P_AV
 
             parent.HideBtn.Background = brushConverter.ConvertFrom("#D0D0D0") as Brush;
             parent.HideBtn.Foreground = brushConverter.ConvertFrom("#2E2E2E") as Brush;
+        }
+
+        private void Compression_H264VideoBitrate_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (Compression_H264VideoBitrateText != null)
+            {
+                Compression_H264VideoBitrateText.Text = $"{Math.Round(e.NewValue)}kbps";
+                VideoStreamer.H264Bitrate = (int)e.NewValue;
+            }
         }
     }
 }

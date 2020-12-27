@@ -1,4 +1,5 @@
-﻿using NAudio.CoreAudioApi;
+﻿using MediaFoundation;
+using NAudio.CoreAudioApi;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -86,7 +87,7 @@ namespace P2P_AV
 
         private void Window_Closed(object sender, EventArgs e)
         {
-            //((Button)null).Height = 0;
+            ((Button)null).Height = 0; //TODO: Normal exit
         }
 
         private void HideShowMenu(object sender, RoutedEventArgs e)

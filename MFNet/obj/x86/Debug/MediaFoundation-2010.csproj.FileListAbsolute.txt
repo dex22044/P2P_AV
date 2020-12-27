@@ -1,0 +1,6 @@
+C:\Users\dex22044\source\repos\P2P_sound\MFNet\bin\x86\Debug\MediaFoundation.dll
+C:\Users\dex22044\source\repos\P2P_sound\MFNet\bin\x86\Debug\MediaFoundation.pdb
+C:\Users\dex22044\source\repos\P2P_sound\MFNet\obj\x86\Debug\MediaFoundation-2010.csprojAssemblyReference.cache
+C:\Users\dex22044\source\repos\P2P_sound\MFNet\obj\x86\Debug\MediaFoundation-2010.csproj.CoreCompileInputs.cache
+C:\Users\dex22044\source\repos\P2P_sound\MFNet\obj\x86\Debug\MediaFoundation.dll
+C:\Users\dex22044\source\repos\P2P_sound\MFNet\obj\x86\Debug\MediaFoundation.pdb

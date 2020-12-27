@@ -15,7 +15,7 @@ namespace P2P_AV
         static TcpClient client;
         static NetworkStream stream;
         static IPEndPoint endPoint;
-        static int maxBufferSize = 19200 * 64;
+        static int maxBufferSize = 19200 * 4;
 
         public static WaveOut WaveOut;
 
