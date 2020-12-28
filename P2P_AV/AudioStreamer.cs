@@ -47,7 +47,7 @@ namespace P2P_AV
                     {
                         while (stream.DataAvailable)
                         {
-                            byte[] buf = new byte[8192];
+                            byte[] buf = new byte[bufSize];
                             int len = stream.Read(buf, 0, buf.Length);
                             streamOut.AddSamples(buf, 0, len);
                         }

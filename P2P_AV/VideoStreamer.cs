@@ -19,7 +19,7 @@ namespace P2P_AV
     class VideoStreamer
     {
         static NetworkStream stream;
-        static int bufSize = 32768;
+        static int bufSize = 131072;
 
         public static int width = 1366;
         public static int height = 768;
@@ -62,18 +62,18 @@ namespace P2P_AV
             }
             else
             {
-                ScreenCapturer.OnScreenUpdated += CapturedEvent;
-                ScreenCapturer.StartCapture();
                 client = new TcpClient();
                 client.Connect(addr, port);
                 client.ReceiveBufferSize = bufSize;
                 client.SendBufferSize = bufSize;
+                stream = client.GetStream();
                 if (codec == 1)
                 {
                     encoder = new OpenH264Lib.Encoder(OpenH264DllName);
                     encoder.Setup(width, height, H264Bitrate * 1000, 15, 2f, H264EncoderCallback);
                 }
-                stream = client.GetStream();
+                ScreenCapturer.OnScreenUpdated += CapturedEvent;
+                ScreenCapturer.StartCapture();
             }
             await Task.Delay(-1);
         }
@@ -84,25 +84,25 @@ namespace P2P_AV
             {
                 MainWindow.current.Dispatcher.Invoke(() =>
                 {
-                    var rect = new System.Drawing.Rectangle(0, 0, decoded.Width, decoded.Height);
-                
-                    var bitmapData = decoded.LockBits(
-                        rect,
-                        ImageLockMode.ReadWrite,
-                        System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-                
-                    var size = (rect.Width * rect.Height) * 4;
-                    MainWindow.current.VideoObject.Source = BitmapSource.Create(
-                        decoded.Width,
-                        decoded.Height,
-                        decoded.HorizontalResolution,
-                        decoded.VerticalResolution,
-                        PixelFormats.Bgra32,
-                        null,
-                        bitmapData.Scan0,
-                        size,
-                        bitmapData.Stride);
-                    decoded.UnlockBits(bitmapData);
+                        var rect = new System.Drawing.Rectangle(0, 0, decoded.Width, decoded.Height);
+
+                        var bitmapData = decoded.LockBits(
+                            rect,
+                            ImageLockMode.ReadWrite,
+                            System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+
+                        var size = (rect.Width * rect.Height) * 4;
+                        MainWindow.current.VideoObject.Source = BitmapSource.Create(
+                            decoded.Width,
+                            decoded.Height,
+                            decoded.HorizontalResolution,
+                            decoded.VerticalResolution,
+                            PixelFormats.Bgra32,
+                            null,
+                            bitmapData.Scan0,
+                            size,
+                            bitmapData.Stride);
+                        decoded.UnlockBits(bitmapData);
                 });
 
                 encodeAndSend(decoded);
@@ -115,7 +115,10 @@ namespace P2P_AV
             {
                 try
                 {
-                    if(codec == 0) {
+                    if (codec == 0)
+                    {
+                        byte[] buffer = new byte[bufSize];
+                        byte[] buf = new byte[4];
                         while (stream != null)
                         {
                             stream.Write(new byte[4], 0, 4);
@@ -128,7 +131,6 @@ namespace P2P_AV
                                     using (MemoryStream lenStream = new MemoryStream())
                                     {
                                         int recvv = 0;
-                                        byte[] buf = new byte[4];
                                         while (recvv < 4)
                                         {
                                             int r = stream.Read(buf, 0, 4);
@@ -140,7 +142,6 @@ namespace P2P_AV
                                     }
 
                                     int recvLen = 0;
-                                    byte[] buffer = new byte[bufSize];
                                     while (recvLen < totalLen)
                                     {
                                         int rl = stream.Read(buffer, 0, buffer.Length);
@@ -148,29 +149,32 @@ namespace P2P_AV
                                         recvLen += rl;
                                     }
 
-                                    decodeAndSet(recv.ToArray());
+                                    decodeAndSet(recv.ToArray(), 0);
                                 }
                             }
                         }
                     }
-                    else if(codec == 1)
+                    else if (codec == 1)
                     {
+                        byte[] buffer = new byte[bufSize];
                         while (stream != null)
                         {
                             using (MemoryStream recv = new MemoryStream())
                             {
-                                byte[] buf = new byte[8192];
+                                int recvLen = 0;
                                 while (stream.DataAvailable)
                                 {
-                                    int len = stream.Read(buf, 0, buf.Length);
-                                    recv.Write(buf, 0, len);
+                                    int rl = stream.Read(buffer, 0, bufSize);
+                                    recv.Write(buffer, 0, rl);
+                                    recvLen += rl;
                                 }
-                                decodeAndSet(recv.ToArray());
+
+                                decodeAndSet(recv.ToArray(), recvLen);
                             }
                         }
                     }
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     Console.WriteLine(e.Message);
                 }
@@ -202,9 +206,8 @@ namespace P2P_AV
                     using (MemoryStream encoder = new MemoryStream())
                     {
                         ImageCodecInfo jpgEncoder = GetEncoder(ImageFormat.Jpeg);
-                        Encoder myEncoder = Encoder.Quality;
                         EncoderParameters myEncoderParameters = new EncoderParameters(1);
-                        myEncoderParameters.Param[0] = new EncoderParameter(myEncoder, encodeQuality);
+                        myEncoderParameters.Param[0] = new EncoderParameter(Encoder.Quality, encodeQuality);
                         image.Save(encoder, jpgEncoder, myEncoderParameters);
 
                         stream.Write(BitConverter.GetBytes((int)encoder.Length), 0, 4);
@@ -227,7 +230,7 @@ namespace P2P_AV
             }
         }
 
-        static void decodeAndSet(byte[] buffer)
+        static void decodeAndSet(byte[] buffer, int h264len)
         {
             if (codec == 0)
             {
@@ -263,7 +266,7 @@ namespace P2P_AV
             }
             else if (codec == 1)
             {
-                using (Bitmap decoded = decoder.Decode(buffer, buffer.Length))
+                using (Bitmap decoded = decoder.Decode(buffer, h264len))
                 {
                     if (decoded == null) return;
                     MainWindow.current.Dispatcher.Invoke(() =>
