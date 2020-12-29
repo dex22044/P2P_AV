@@ -47,11 +47,24 @@ namespace H264
 				try
 				{
 					int pixelSize = 3;
+                    switch (bmp.PixelFormat)
+                    {
+						case PixelFormat.Format24bppRgb:
+							pixelSize = 3;
+							break;
+						case PixelFormat.Format32bppArgb:
+						case PixelFormat.Format32bppRgb:
+						case PixelFormat.Format32bppPArgb:
+							pixelSize = 4;
+							break;
+						default:
+							return null;
+                    }
 
 					BitmapData bmpDate = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadWrite, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
 					byte* ptr = (byte*)bmpDate.Scan0.ToPointer();
 
-					byte[] buffer = new byte[width * height * 4];
+					byte[] buffer = new byte[width * height * 3];
 
 					int cnt = 0;
 					for (int y = 0; y <= height - 1; y++)

@@ -24,16 +24,16 @@ namespace H264
         {
             try
             {
-                byte[] p = H264.BitmapToRGBA(prev, prev.Width, prev.Height);
-                byte[] c = H264.BitmapToRGBA(curr, curr.Width, curr.Height);
-                byte[] o = new byte[c.Length];
+                byte[] p = H264.BitmapToRGBA(prev, _width, _height);
+                byte[] c = H264.BitmapToRGBA(curr, _width, _height);
+                byte[] o = new byte[_width * _height * 3];
 
                 for (int i = 0; i < o.Length; i++)
                 {
-                    o[i] = p[i]; //(byte)(p[i] + ((c[i] - 127) * 2));
+                    o[i] = (byte)(p[i] + c[i] - 127);
                 }
 
-                return H264.RGBtoBitmap(o, prev.Width, prev.Height);
+                return H264.RGBtoBitmap(o, _width, _height);
             }
             catch (Exception) { return null; }
         }
@@ -55,7 +55,7 @@ namespace H264
                     {
                         if (_prevFrame != null)
                             _prevFrame.Dispose();
-                        _prevFrame = (Bitmap)bmp.Clone();
+                        _prevFrame = bmp;
                         return bmp;
                     }
                 }

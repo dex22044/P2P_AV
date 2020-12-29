@@ -30,8 +30,6 @@ namespace P2P_AV
 
         static OpenH264Lib.Encoder encoder;
         static OpenH264Lib.Decoder decoder;
-        static H264.Encoder enc;
-        static H264.Decoder dec;
 
         static string OpenH264DllName = "openh264.dll";
 
@@ -47,9 +45,6 @@ namespace P2P_AV
             {
                 codec = 1;
             }
-
-            enc = new H264.Encoder(width, height, 30);
-            dec = new H264.Decoder(width, height);
 
             if (role == 0)
             {
@@ -67,15 +62,15 @@ namespace P2P_AV
             }
             else
             {
-                //client = new TcpClient();
-                //client.Connect(addr, port);
-                //client.ReceiveBufferSize = bufSize;
-                //client.SendBufferSize = bufSize;
-                //stream = client.GetStream();
+                client = new TcpClient();
+                client.Connect(addr, port);
+                client.ReceiveBufferSize = bufSize;
+                client.SendBufferSize = bufSize;
+                stream = client.GetStream();
                 if (codec == 1)
                 {
                     encoder = new OpenH264Lib.Encoder(OpenH264DllName);
-                    encoder.Setup(width, height, H264Bitrate * 1000, 15, 2f, H264EncoderCallback);
+                    encoder.Setup(width, height, H264Bitrate * 1000, 15, 1f, H264EncoderCallback);
                 }
                 ScreenCapturer.OnScreenUpdated += CapturedEvent;
                 ScreenCapturer.StartCapture();
@@ -161,12 +156,27 @@ namespace P2P_AV
                     else if (codec == 1)
                     {
                         byte[] buffer = new byte[bufSize];
+                        byte[] buf = new byte[4];
                         while (stream != null)
                         {
                             using (MemoryStream recv = new MemoryStream())
                             {
+                                int totalLen = 0;
+                                using (MemoryStream lenStream = new MemoryStream())
+                                {
+                                    int recvv = 0;
+                                    while (recvv < 4)
+                                    {
+                                        int r = stream.Read(buf, 0, 4);
+                                        recvv += r;
+                                        lenStream.Write(buf, 0, r);
+                                    }
+
+                                    totalLen = BitConverter.ToInt32(lenStream.ToArray(), 0);
+                                }
+
                                 int recvLen = 0;
-                                while (stream.DataAvailable)
+                                while (recvLen < totalLen)
                                 {
                                     int rl = stream.Read(buffer, 0, bufSize);
                                     recv.Write(buffer, 0, rl);
@@ -205,7 +215,9 @@ namespace P2P_AV
                 if (codec == 0)
                 {
                     if (!stream.DataAvailable) return;
-                    stream.Read(new byte[4], 0, 4);
+                    int readed = 0;
+                    while (readed < 4)
+                        readed += stream.Read(new byte[4], 0, 4);
 
                     using (MemoryStream encoder = new MemoryStream())
                     {
@@ -228,8 +240,10 @@ namespace P2P_AV
 
         static void H264EncoderCallback(byte[] data, int len, OpenH264Lib.Encoder.FrameType type)
         {
+            if (type == OpenH264Lib.Encoder.FrameType.Skip) return;
             if (stream != null)
             {
+                stream.Write(BitConverter.GetBytes((int)data.Length), 0, 4);
                 stream.Write(data, 0, len);
             }
         }

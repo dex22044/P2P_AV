@@ -25,7 +25,7 @@ namespace H264
             _height = height;
             _keyframeInterval = keyframeInterval;
             _toKeyframe = 0;
-            jpgEncoder = GetEncoder(ImageFormat.Jpeg);
+            jpgEncoder = GetEncoder(ImageFormat.Png);
             myEncoderParameters = new EncoderParameters(1);
         }
 
@@ -39,7 +39,7 @@ namespace H264
 
                 for(int i = 0; i < o.Length; i++)
                 {
-                    o[i] = (byte)((p[i] - c[i]) / 2 + 127);
+                    o[i] = (byte)((p[i] - c[i]) + 127);
                 }
 
                 return H264.RGBtoBitmap(o, prev.Width, prev.Height);
