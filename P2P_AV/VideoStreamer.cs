@@ -30,6 +30,8 @@ namespace P2P_AV
 
         static OpenH264Lib.Encoder encoder;
         static OpenH264Lib.Decoder decoder;
+        static H264.Encoder enc;
+        static H264.Decoder dec;
 
         static string OpenH264DllName = "openh264.dll";
 
@@ -45,6 +47,9 @@ namespace P2P_AV
             {
                 codec = 1;
             }
+
+            enc = new H264.Encoder(width, height, 30);
+            dec = new H264.Decoder(width, height);
 
             if (role == 0)
             {
@@ -62,11 +67,11 @@ namespace P2P_AV
             }
             else
             {
-                client = new TcpClient();
-                client.Connect(addr, port);
-                client.ReceiveBufferSize = bufSize;
-                client.SendBufferSize = bufSize;
-                stream = client.GetStream();
+                //client = new TcpClient();
+                //client.Connect(addr, port);
+                //client.ReceiveBufferSize = bufSize;
+                //client.SendBufferSize = bufSize;
+                //stream = client.GetStream();
                 if (codec == 1)
                 {
                     encoder = new OpenH264Lib.Encoder(OpenH264DllName);
@@ -84,27 +89,26 @@ namespace P2P_AV
             {
                 MainWindow.current.Dispatcher.Invoke(() =>
                 {
-                        var rect = new System.Drawing.Rectangle(0, 0, decoded.Width, decoded.Height);
+                    var rect = new System.Drawing.Rectangle(0, 0, width, height);
 
-                        var bitmapData = decoded.LockBits(
-                            rect,
-                            ImageLockMode.ReadWrite,
-                            System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+                    var bitmapData = decoded.LockBits(
+                    rect,
+                    ImageLockMode.ReadWrite,
+                    System.Drawing.Imaging.PixelFormat.Format32bppArgb);
 
-                        var size = (rect.Width * rect.Height) * 4;
-                        MainWindow.current.VideoObject.Source = BitmapSource.Create(
-                            decoded.Width,
-                            decoded.Height,
-                            decoded.HorizontalResolution,
-                            decoded.VerticalResolution,
-                            PixelFormats.Bgra32,
-                            null,
-                            bitmapData.Scan0,
-                            size,
-                            bitmapData.Stride);
-                        decoded.UnlockBits(bitmapData);
+                    var size = (rect.Width * rect.Height) * 4;
+                    MainWindow.current.VideoObject.Source = BitmapSource.Create(
+                    decoded.Width,
+                    decoded.Height,
+                    decoded.HorizontalResolution,
+                    decoded.VerticalResolution,
+                    PixelFormats.Bgra32,
+                    null,
+                    bitmapData.Scan0,
+                    size,
+                    bitmapData.Stride);
+                    decoded.UnlockBits(bitmapData);
                 });
-
                 encodeAndSend(decoded);
             }
         }

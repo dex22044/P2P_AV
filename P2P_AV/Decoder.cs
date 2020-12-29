@@ -38,28 +38,25 @@ namespace H264
             catch (Exception) { return null; }
         }
 
-        public Bitmap Decode(EncodedFrame data)
+        public Bitmap Decode(Bitmap data, EncodedFrameType type)
         {
-            using(MemoryStream str=new MemoryStream(data.data))
+            Bitmap decoded = (Bitmap)data.Clone();
             {
-                using (Bitmap decoded = new Bitmap(str))
+                if (type == EncodedFrameType.I)
                 {
-                    if (data.type == EncodedFrameType.I)
+                    if (_prevFrame != null)
+                        _prevFrame.Dispose();
+                    _prevFrame = (Bitmap)decoded.Clone();
+                    return decoded;
+                }
+                else if (type == EncodedFrameType.P)
+                {
+                    Bitmap bmp = Add(_prevFrame, decoded);
                     {
                         if (_prevFrame != null)
                             _prevFrame.Dispose();
-                        _prevFrame = (Bitmap)decoded.Clone();
-                        return decoded;
-                    }
-                    else if (data.type == EncodedFrameType.P)
-                    {
-                        using (Bitmap bmp = Add(_prevFrame, decoded))
-                        {
-                            if (_prevFrame != null)
-                                _prevFrame.Dispose();
-                            _prevFrame = (Bitmap)bmp.Clone();
-                            return bmp;
-                        }
+                        _prevFrame = (Bitmap)bmp.Clone();
+                        return bmp;
                     }
                 }
             }

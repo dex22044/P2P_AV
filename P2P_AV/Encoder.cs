@@ -70,7 +70,7 @@ namespace H264
                 _prevFrame = (Bitmap)frame.Clone();
                 using (MemoryStream encoder = new MemoryStream())
                 {
-                    myEncoderParameters.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, 20L);
+                    myEncoderParameters.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, 100L);
                     frame.Save(encoder, jpgEncoder, myEncoderParameters);
 
                     return new EncodedFrame { data = encoder.ToArray(), type = EncodedFrameType.I };
@@ -84,7 +84,7 @@ namespace H264
                     //if (compared == null) return new EncodedFrame { data = null, type = EncodedFrameType.Skip };
                     using (MemoryStream encoder = new MemoryStream())
                     {
-                        myEncoderParameters.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, 20L);
+                        myEncoderParameters.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, 100L);
                         compared.Save(encoder, jpgEncoder, myEncoderParameters);
 
                         if (_prevFrame != null)
