@@ -24,8 +24,8 @@ namespace P2P_AV
         public static bool enabled;
         static int role;
 
-        static int ScreenWidth = 1920;
-        static int ScreenHeight = 1080;
+        public static int ScreenWidth = 1920;
+        public static int ScreenHeight = 1080;
 
         public async static Task MainAsync(int role, string addr, int port)
         {

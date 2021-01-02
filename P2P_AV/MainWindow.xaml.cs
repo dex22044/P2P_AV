@@ -14,6 +14,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
@@ -26,8 +27,7 @@ namespace P2P_AV
     /// </summary>
     public partial class MainWindow : Window
     {
-        int arole;
-        int vrole;
+        public int arole;
         public static MainWindow current;
         static SettingsWindow settingsWin;
 
@@ -62,14 +62,17 @@ namespace P2P_AV
                 }
 
                 {
-                    if (key == System.Windows.Forms.Keys.LWin
-                     || key == System.Windows.Forms.Keys.RWin
-                     || key == System.Windows.Forms.Keys.Scroll
-                     || key == System.Windows.Forms.Keys.LShiftKey
-                     || key == System.Windows.Forms.Keys.RShiftKey)
+                    if (MainWindow.current.arole == 0)
                     {
-                        ControlsStreamer.keyboardButtonPressed(key);
-                        return (IntPtr)1; // Handled.
+                        if (key == System.Windows.Forms.Keys.LWin
+                         || key == System.Windows.Forms.Keys.RWin
+                         || key == System.Windows.Forms.Keys.Scroll
+                         || key == System.Windows.Forms.Keys.LShiftKey
+                         || key == System.Windows.Forms.Keys.RShiftKey)
+                        {
+                            ControlsStreamer.keyboardButtonPressed(key);
+                            return (IntPtr)1; // Handled.
+                        }
                     }
                 }
             }
@@ -81,6 +84,11 @@ namespace P2P_AV
         {
             InitializeComponent();
             current = this;
+
+            currentScreen = System.Windows.Forms.Screen.FromHandle(new WindowInteropHelper(this).Handle);
+
+            ControlsStreamer.ScreenWidth = currentScreen.Bounds.Width;
+            ControlsStreamer.ScreenHeight = currentScreen.Bounds.Height;
 
             settingsWin = new SettingsWindow(true, this);
 
@@ -240,6 +248,8 @@ namespace P2P_AV
             TopPanel.Visibility = Visibility.Collapsed;
             WindowStyle = WindowStyle.None;
             WindowState = WindowState.Maximized;
+            Width = currentScreen.Bounds.Width;
+            Height = currentScreen.Bounds.Height;
             Topmost = true;
             isFullscreen = true;
         }
