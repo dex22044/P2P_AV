@@ -18,15 +18,15 @@ namespace P2P_AV
 {
     class VideoStreamer
     {
-        static NetworkStream stream;
-        static int bufSize = 131072;
+        static int bufSize = 65536;
 
         public static int width = 1366;
         public static int height = 768;
         public static long encodeQuality = 50L;
-        public static string codecName = "H264";
+        public static string codecName = "JPEG";
         public static int H264Bitrate = 500;
         static int codec;
+        static Socket client;
 
         static OpenH264Lib.Encoder encoder;
         static OpenH264Lib.Decoder decoder;
@@ -35,8 +35,6 @@ namespace P2P_AV
 
         public async static Task MainAsync(int role, string addr, int port)
         {
-            TcpClient client;
-
             if (codecName == "JPEG")
             {
                 codec = 0;
@@ -50,23 +48,24 @@ namespace P2P_AV
             {
                 TcpListener server = new TcpListener(IPAddress.Any, port);
                 server.Start(1);
-                client = server.AcceptTcpClient();
+                client = server.AcceptSocket();
                 client.ReceiveBufferSize = bufSize;
                 client.SendBufferSize = bufSize;
-                stream = client.GetStream();
                 if (codec == 1)
                 {
                     decoder = new OpenH264Lib.Decoder(OpenH264DllName);
                 }
-                new Thread(new ThreadStart(receiverThreadProcessor)).Start();
+                Thread rcv = new Thread(new ThreadStart(receiverThreadProcessor));
+                rcv.IsBackground = false;
+                rcv.Priority = ThreadPriority.Highest;
+                rcv.Start();
             }
             else
             {
-                client = new TcpClient();
+                client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 client.Connect(addr, port);
                 client.ReceiveBufferSize = bufSize;
                 client.SendBufferSize = bufSize;
-                stream = client.GetStream();
                 if (codec == 1)
                 {
                     encoder = new OpenH264Lib.Encoder(OpenH264DllName);
@@ -104,6 +103,7 @@ namespace P2P_AV
                     bitmapData.Stride);
                     decoded.UnlockBits(bitmapData);
                 });
+
                 encodeAndSend(decoded);
             }
         }
@@ -114,77 +114,38 @@ namespace P2P_AV
             {
                 try
                 {
-                    if (codec == 0)
+                    byte[] buffer = new byte[bufSize];
+                    byte[] buf = new byte[4];
+                    while (client != null && client.Connected)
                     {
-                        byte[] buffer = new byte[bufSize];
-                        byte[] buf = new byte[4];
-                        while (stream != null)
+                        client.Send(new byte[1]);
+                        while (client.Available == 0) continue;
+
+                        using (MemoryStream recv = new MemoryStream())
                         {
-                            stream.Write(new byte[4], 0, 4);
-                            while (!stream.DataAvailable) continue;
-
+                            int totalLen = 0;
+                            using (MemoryStream lenStream = new MemoryStream())
                             {
-                                using (MemoryStream recv = new MemoryStream())
+                                int recvv = 0;
+                                while (recvv < 4)
                                 {
-                                    int totalLen = 0;
-                                    using (MemoryStream lenStream = new MemoryStream())
-                                    {
-                                        int recvv = 0;
-                                        while (recvv < 4)
-                                        {
-                                            int r = stream.Read(buf, 0, 4);
-                                            recvv += r;
-                                            lenStream.Write(buf, 0, r);
-                                        }
-
-                                        totalLen = BitConverter.ToInt32(lenStream.ToArray(), 0);
-                                    }
-
-                                    int recvLen = 0;
-                                    while (recvLen < totalLen)
-                                    {
-                                        int rl = stream.Read(buffer, 0, buffer.Length);
-                                        recv.Write(buffer, 0, rl);
-                                        recvLen += rl;
-                                    }
-
-                                    decodeAndSet(recv.ToArray(), 0);
+                                    int r = client.Receive(buf, 4, SocketFlags.None);
+                                    recvv += r;
+                                    lenStream.Write(buf, 0, r);
                                 }
+
+                                totalLen = BitConverter.ToInt32(lenStream.ToArray(), 0);
                             }
-                        }
-                    }
-                    else if (codec == 1)
-                    {
-                        byte[] buffer = new byte[bufSize];
-                        byte[] buf = new byte[4];
-                        while (stream != null)
-                        {
-                            using (MemoryStream recv = new MemoryStream())
+
+                            int recvLen = 0;
+                            while (recvLen < totalLen)
                             {
-                                int totalLen = 0;
-                                using (MemoryStream lenStream = new MemoryStream())
-                                {
-                                    int recvv = 0;
-                                    while (recvv < 4)
-                                    {
-                                        int r = stream.Read(buf, 0, 4);
-                                        recvv += r;
-                                        lenStream.Write(buf, 0, r);
-                                    }
-
-                                    totalLen = BitConverter.ToInt32(lenStream.ToArray(), 0);
-                                }
-
-                                int recvLen = 0;
-                                while (recvLen < totalLen)
-                                {
-                                    int rl = stream.Read(buffer, 0, bufSize);
-                                    recv.Write(buffer, 0, rl);
-                                    recvLen += rl;
-                                }
-
-                                decodeAndSet(recv.ToArray(), recvLen);
+                                int rl = client.Receive(buffer, bufSize, SocketFlags.None);
+                                recv.Write(buffer, 0, rl);
+                                recvLen += rl;
                             }
+
+                            decodeAndSet(recv.ToArray(), 0);
                         }
                     }
                 }
@@ -208,16 +169,15 @@ namespace P2P_AV
             return null;
         }
 
+        static byte[] nullBuf = new byte[1];
         static void encodeAndSend(Bitmap image)
         {
-            if (stream != null)
+            if (client != null && client.Connected)
             {
                 if (codec == 0)
                 {
-                    if (!stream.DataAvailable) return;
-                    int readed = 0;
-                    while (readed < 4)
-                        readed += stream.Read(new byte[4], 0, 4);
+                    if (client.Available == 0) return;
+                    client.Receive(nullBuf);
 
                     using (MemoryStream encoder = new MemoryStream())
                     {
@@ -226,9 +186,8 @@ namespace P2P_AV
                         myEncoderParameters.Param[0] = new EncoderParameter(Encoder.Quality, encodeQuality);
                         image.Save(encoder, jpgEncoder, myEncoderParameters);
 
-                        stream.Write(BitConverter.GetBytes((int)encoder.Length), 0, 4);
-                        encoder.Seek(0, SeekOrigin.Begin);
-                        encoder.CopyTo(stream);
+                        client.Send(BitConverter.GetBytes((int)encoder.Length));
+                        client.Send(encoder.ToArray());
                     }
                 }
                 else if (codec == 1)
@@ -241,15 +200,16 @@ namespace P2P_AV
         static void H264EncoderCallback(byte[] data, int len, OpenH264Lib.Encoder.FrameType type)
         {
             if (type == OpenH264Lib.Encoder.FrameType.Skip) return;
-            if (stream != null)
+            if (client != null && client.Connected)
             {
-                stream.Write(BitConverter.GetBytes((int)data.Length), 0, 4);
-                stream.Write(data, 0, len);
+                client.Send(BitConverter.GetBytes((int)data.Length));
+                client.Send(data);
             }
         }
 
         static void decodeAndSet(byte[] buffer, int h264len)
         {
+            if (buffer == null || buffer.Length == 0) return;
             if (codec == 0)
             {
                 using (MemoryStream str = new MemoryStream(buffer))

@@ -81,6 +81,9 @@ namespace P2P_AV
 
             parent.HideBtn.Background = brushConverter.ConvertFrom("#2E2E2E") as Brush;
             parent.HideBtn.Foreground = brushConverter.ConvertFrom("#D0D0D0") as Brush;
+
+            parent.EnterFullscreenBtn.Background = brushConverter.ConvertFrom("#2E2E2E") as Brush;
+            parent.EnterFullscreenBtn.Foreground = brushConverter.ConvertFrom("#D0D0D0") as Brush;
         }
 
         void setLightTheme()
@@ -100,6 +103,9 @@ namespace P2P_AV
 
             parent.HideBtn.Background = brushConverter.ConvertFrom("#D0D0D0") as Brush;
             parent.HideBtn.Foreground = brushConverter.ConvertFrom("#2E2E2E") as Brush;
+
+            parent.EnterFullscreenBtn.Background = brushConverter.ConvertFrom("#D0D0D0") as Brush;
+            parent.EnterFullscreenBtn.Foreground = brushConverter.ConvertFrom("#2E2E2E") as Brush;
         }
 
         private void Compression_H264VideoBitrate_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)

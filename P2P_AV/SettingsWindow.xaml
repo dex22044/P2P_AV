@@ -32,6 +32,7 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                         <RowDefinition/>
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
@@ -44,6 +45,9 @@
 
                     <TextBlock Text="Порт видео:" Grid.Row="1" Grid.Column="0" Margin="5"/>
                     <TextBox x:Name="Connection_VideoPort" Grid.Row="1" Grid.Column="1" Margin="5" Text="8091"/>
+                    
+                    <TextBlock Text="Порт управления:" Grid.Row="2" Grid.Column="0" Margin="5"/>
+                    <TextBox x:Name="Connection_ControlsPort" Grid.Row="2" Grid.Column="1" Margin="5" Text="8092"/>
                 </Grid>
             </TabItem>
 
@@ -63,7 +67,7 @@
                     <TextBlock Text="Тип сжатия:" Grid.Row="0" Grid.Column="0" Margin="5"/>
                     <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal">
                         <RadioButton Content="JPEG" Margin="5" Checked="Compression_ChangedCompressionType" GroupName="Compression_CompressionType" IsChecked="True"/>
-                        <RadioButton Content="H264" Margin="5" Checked="Compression_ChangedCompressionType" GroupName="Compression_CompressionType" IsChecked="True"/>
+                        <RadioButton Content="H264" Margin="5" Checked="Compression_ChangedCompressionType" GroupName="Compression_CompressionType" IsChecked="False"/>
                     </StackPanel>
 
                     <TextBlock Text="Разрешение сжатия:" Grid.Row="1" Grid.Column="0" Margin="5"/>

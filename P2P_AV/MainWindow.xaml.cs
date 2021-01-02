@@ -31,6 +31,52 @@ namespace P2P_AV
         public static MainWindow current;
         static SettingsWindow settingsWin;
 
+        Thread vidThread;
+        Thread audThread;
+
+        private static readonly InterceptKeys.LowLevelKeyboardProc _proc = HookCallback;
+        private static IntPtr _hookID = IntPtr.Zero;
+
+        public bool isFullscreen;
+        public System.Windows.Forms.Screen currentScreen;
+
+        protected override void OnSourceInitialized(EventArgs e)
+        {
+            base.OnSourceInitialized(e);
+            _hookID = InterceptKeys.SetHook(_proc);
+        }
+
+        public static IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
+        {
+            if (nCode >= 0)
+            {
+                int vkCode = Marshal.ReadInt32(lParam);
+                System.Windows.Forms.Keys key = (System.Windows.Forms.Keys)vkCode;
+
+                if (MainWindow.current.isFullscreen)
+                {
+                    if (key == System.Windows.Forms.Keys.Scroll)
+                    {
+                        MainWindow.current.ExitFullscreenMode(null, null);
+                    }
+                }
+
+                {
+                    if (key == System.Windows.Forms.Keys.LWin
+                     || key == System.Windows.Forms.Keys.RWin
+                     || key == System.Windows.Forms.Keys.Scroll
+                     || key == System.Windows.Forms.Keys.LShiftKey
+                     || key == System.Windows.Forms.Keys.RShiftKey)
+                    {
+                        ControlsStreamer.keyboardButtonPressed(key);
+                        return (IntPtr)1; // Handled.
+                    }
+                }
+            }
+
+            return InterceptKeys.CallNextHookEx(_hookID, nCode, wParam, lParam);
+        }
+
         public MainWindow()
         {
             InitializeComponent();
@@ -70,24 +116,39 @@ namespace P2P_AV
             //VideoStartBtn.IsEnabled = false;
             string aip = AudioIP.Text;
             string aport = settingsWin.Connection_AudioPort.Text;
-            new Thread(new ThreadStart(() =>
+            vidThread = new Thread(new ThreadStart(() =>
             {
                 AudioStreamer.MainAsync(arole, 8192, $"{aip}:{aport}", Convert.ToInt32(aport));
-            })).Start();
+            }));
+            vidThread.IsBackground = false;
+            vidThread.Priority = ThreadPriority.Highest;
+            vidThread.Start();
 
             string vip = AudioIP.Text;
             string vport = settingsWin.Connection_VideoPort.Text;
             VideoStreamer.width = Convert.ToInt32(settingsWin.Compression_ImageWidth.Text);
             VideoStreamer.height = Convert.ToInt32(settingsWin.Compression_ImageHeight.Text);
-            new Thread(new ThreadStart(() =>
+            audThread = new Thread(new ThreadStart(() =>
             {
                 VideoStreamer.MainAsync(arole, vip, Convert.ToInt32(vport));
+            }));
+            audThread.IsBackground = false;
+            audThread.Priority = ThreadPriority.Highest;
+            audThread.Start();
+
+            string cport = settingsWin.Connection_ControlsPort.Text;
+            ControlsStreamer.enabled = true;
+            new Thread(new ThreadStart(() =>
+            {
+                ControlsStreamer.MainAsync(arole, vip, Convert.ToInt32(cport));
             })).Start();
+
+            AudioIP.IsEnabled = false;
         }
 
         private void Window_Closed(object sender, EventArgs e)
         {
-            ((Button)null).Height = 0; //TODO: Normal exit
+            _ = ((string)null).Length;
         }
 
         private void HideShowMenu(object sender, RoutedEventArgs e)
@@ -128,16 +189,69 @@ namespace P2P_AV
             //KeyboardData.Text = e.Key.ToString();
         }
 
-        private void Window_MouseMove(object sender, MouseEventArgs e)
-        {
-            Point position = e.GetPosition(VideoObject);
-
-            //MouseData.Text = $"{position.X} {position.Y} {e.LeftButton} {e.RightButton} {e.MiddleButton}";
-        }
-
         private void OpenSettings(object sender, RoutedEventArgs e)
         {
             settingsWin.Show();
+        }
+
+        private void Window_MouseMove(object sender, MouseEventArgs e)
+        {
+            Point global = e.GetPosition(VideoObject);
+            ControlsStreamer.mousePositionChanged(global.X / VideoObject.ActualWidth, global.Y / VideoObject.ActualHeight);
+        }
+
+        private void VideoObject_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            ControlsStreamer.mouseButtonPressed(e);
+        }
+
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            if (e.Key == Key.LeftAlt || e.Key == Key.RightAlt || e.Key == Key.Space || e.Key == Key.Enter ||
+                e.SystemKey == Key.LeftAlt || e.SystemKey == Key.RightAlt || e.SystemKey == Key.Space || e.SystemKey == Key.Enter)
+            {
+                e.Handled = true;
+                ControlsStreamer.keyboardButtonPressed(e);
+            }
+            else
+            {
+                base.OnKeyDown(e);
+            }
+        }
+
+        private void VideoObject_KeyDown_1(object sender, KeyEventArgs e)
+        {
+            ControlsStreamer.keyboardButtonPressed(e);
+        }
+
+        private void VideoObject_KeyUp(object sender, KeyEventArgs e)
+        {
+            ControlsStreamer.keyboardButtonReleased(e);
+        }
+
+        private void CheckBoxControlsEnable_Checked(object sender, RoutedEventArgs e)
+        {
+            ControlsStreamer.enabled = ((CheckBox)sender).IsChecked == true;
+        }
+
+        private void EnterFullscreenMode(object sender, RoutedEventArgs e)
+        {
+            BottomPanel.Visibility = Visibility.Collapsed;
+            TopPanel.Visibility = Visibility.Collapsed;
+            WindowStyle = WindowStyle.None;
+            WindowState = WindowState.Maximized;
+            Topmost = true;
+            isFullscreen = true;
+        }
+
+        public void ExitFullscreenMode(object sender, RoutedEventArgs e)
+        {
+            BottomPanel.Visibility = Visibility.Visible;
+            TopPanel.Visibility = Visibility.Visible;
+            WindowStyle = WindowStyle.SingleBorderWindow;
+            WindowState = WindowState.Maximized;
+            Topmost = false;
+            isFullscreen = false;
         }
     }
 }
