@@ -29,7 +29,7 @@ namespace P2P_AV
     {
         public int arole;
         public static MainWindow current;
-        static SettingsWindow settingsWin;
+        public static SettingsWindow settingsWin;
 
         Thread vidThread;
         Thread audThread;
@@ -121,35 +121,34 @@ namespace P2P_AV
         {
             Button btn = (Button)sender;
             btn.IsEnabled = false;
-            //VideoStartBtn.IsEnabled = false;
             string aip = AudioIP.Text;
             string aport = settingsWin.Connection_AudioPort.Text;
-            vidThread = new Thread(new ThreadStart(() =>
-            {
-                AudioStreamer.MainAsync(arole, 8192, $"{aip}:{aport}", Convert.ToInt32(aport));
-            }));
-            vidThread.IsBackground = false;
-            vidThread.Priority = ThreadPriority.Highest;
-            vidThread.Start();
+            //audThread = new Thread(new ThreadStart(() =>
+            //{
+            //    AudioStreamer.MainAsync(arole, 8192, $"{aip}:{aport}", Convert.ToInt32(aport));
+            //}));
+            //audThread.IsBackground = false;
+            //audThread.Priority = ThreadPriority.Highest;
+            //audThread.Start();
 
             string vip = AudioIP.Text;
             string vport = settingsWin.Connection_VideoPort.Text;
             VideoStreamer.width = Convert.ToInt32(settingsWin.Compression_ImageWidth.Text);
             VideoStreamer.height = Convert.ToInt32(settingsWin.Compression_ImageHeight.Text);
-            audThread = new Thread(new ThreadStart(() =>
+            vidThread = new Thread(new ThreadStart(() =>
             {
                 VideoStreamer.MainAsync(arole, vip, Convert.ToInt32(vport));
             }));
-            audThread.IsBackground = false;
-            audThread.Priority = ThreadPriority.Highest;
-            audThread.Start();
+            vidThread.IsBackground = false;
+            vidThread.Priority = ThreadPriority.Highest;
+            vidThread.Start();
 
-            string cport = settingsWin.Connection_ControlsPort.Text;
-            ControlsStreamer.enabled = true;
-            new Thread(new ThreadStart(() =>
-            {
-                ControlsStreamer.MainAsync(arole, vip, Convert.ToInt32(cport));
-            })).Start();
+            //string cport = settingsWin.Connection_ControlsPort.Text;
+            //ControlsStreamer.enabled = true;
+            //new Thread(new ThreadStart(() =>
+            //{
+            //    ControlsStreamer.MainAsync(arole, vip, Convert.ToInt32(cport));
+            //})).Start();
 
             AudioIP.IsEnabled = false;
         }

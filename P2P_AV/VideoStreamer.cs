@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media;
@@ -18,43 +19,60 @@ namespace P2P_AV
 {
     class VideoStreamer
     {
-        static int bufSize = 65536;
+        static Socket udpSock;
+        static IPEndPoint remote;
 
         public static int width = 1366;
         public static int height = 768;
-        public static long encodeQuality = 50L;
-        public static string codecName = "JPEG";
-        public static int H264Bitrate = 500;
-        static int codec;
-        static Socket client;
+        public static long encodeQuality = 10L;
+        static int role;
 
-        static OpenH264Lib.Encoder encoder;
-        static OpenH264Lib.Decoder decoder;
+        static Bitmap currImage;
+        static Graphics currImageDraw;
+        static WriteableBitmap writeableBitmap;
 
-        static string OpenH264DllName = "openh264.dll";
+        static Rectangle[] divideRects;
+        static EncoderParameters encoderParameters;
+        static ImageCodecInfo imageCodecInfo;
+
+        static int divideWidth = 8;
+        static int divideHeight = 9;
+
+        static List<byte[]> sendBuffer;
 
         public async static Task MainAsync(int role, string addr, int port)
         {
-            if (codecName == "JPEG")
+            encoderParameters = new EncoderParameters(1);
+            encoderParameters.Param[0] = new EncoderParameter(Encoder.Quality, encodeQuality);
+            imageCodecInfo = GetEncoder(ImageFormat.Jpeg);
+
+            VideoStreamer.role = role;
+            udpSock = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+
+            divideRects = new Rectangle[divideWidth * divideHeight];
+            int blockWidth = width / divideWidth;
+            int blockHeight = height / divideHeight;
+            for (int x = 0; x < divideWidth; x++)
             {
-                codec = 0;
+                for (int y = 0; y < divideHeight; y++)
+                {
+                    int pos = y * divideWidth + x;
+                    divideRects[pos] = new Rectangle(x * blockWidth, y * blockHeight, blockWidth, blockHeight);
+                }
             }
-            if (codecName == "H264")
+
+            currImage = new Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format32bppRgb);
+            currImageDraw = Graphics.FromImage(currImage);
+
+            MainWindow.current.Dispatcher.Invoke(() =>
             {
-                codec = 1;
-            }
+                writeableBitmap = new WriteableBitmap(width, height, 96, 96, PixelFormats.Bgra32, null);
+                MainWindow.current.VideoObject.Source = writeableBitmap;
+            });
 
             if (role == 0)
             {
-                TcpListener server = new TcpListener(IPAddress.Any, port);
-                server.Start(1);
-                client = server.AcceptSocket();
-                client.ReceiveBufferSize = bufSize;
-                client.SendBufferSize = bufSize;
-                if (codec == 1)
-                {
-                    decoder = new OpenH264Lib.Decoder(OpenH264DllName);
-                }
+                udpSock.Bind(new IPEndPoint(IPAddress.Any, port));
                 Thread rcv = new Thread(new ThreadStart(receiverThreadProcessor));
                 rcv.IsBackground = false;
                 rcv.Priority = ThreadPriority.Highest;
@@ -62,22 +80,23 @@ namespace P2P_AV
             }
             else
             {
-                client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                client.Connect(addr, port);
-                client.ReceiveBufferSize = bufSize;
-                client.SendBufferSize = bufSize;
-                if (codec == 1)
-                {
-                    encoder = new OpenH264Lib.Encoder(OpenH264DllName);
-                    encoder.Setup(width, height, H264Bitrate * 1000, 15, 1f, H264EncoderCallback);
-                }
+                udpSock.Bind(new IPEndPoint(IPAddress.Any, 0));
+                remote = new IPEndPoint(IPAddress.Parse(addr), port);
                 ScreenCapturer.OnScreenUpdated += CapturedEvent;
                 ScreenCapturer.StartCapture();
             }
             await Task.Delay(-1);
         }
 
-        static void CapturedEvent(object sender, OnScreenUpdatedEventArgs args)
+        static void senderThreadProcessor()
+        {
+            while (true)
+            {
+
+            }
+        }
+
+        static unsafe void CapturedEvent(object sender, OnScreenUpdatedEventArgs args)
         {
             using (Bitmap decoded = new Bitmap(args.Bitmap, new Size(width, height)))
             {
@@ -88,19 +107,10 @@ namespace P2P_AV
                     var bitmapData = decoded.LockBits(
                     rect,
                     ImageLockMode.ReadWrite,
-                    System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+                    System.Drawing.Imaging.PixelFormat.Format32bppRgb);
 
-                    var size = (rect.Width * rect.Height) * 4;
-                    MainWindow.current.VideoObject.Source = BitmapSource.Create(
-                    decoded.Width,
-                    decoded.Height,
-                    decoded.HorizontalResolution,
-                    decoded.VerticalResolution,
-                    PixelFormats.Bgra32,
-                    null,
-                    bitmapData.Scan0,
-                    size,
-                    bitmapData.Stride);
+                    writeableBitmap.WritePixels(new System.Windows.Int32Rect(0, 0, width, height), bitmapData.Scan0, width * height * 4, width * 4);
+
                     decoded.UnlockBits(bitmapData);
                 });
 
@@ -114,39 +124,15 @@ namespace P2P_AV
             {
                 try
                 {
-                    byte[] buffer = new byte[bufSize];
-                    byte[] buf = new byte[4];
-                    while (client != null && client.Connected)
+                    byte[] buffer = new byte[65500];
+                    int len = udpSock.Receive(buffer);
+
+                    if (len > 0)
                     {
-                        client.Send(new byte[1]);
-                        while (client.Available == 0) continue;
-
-                        using (MemoryStream recv = new MemoryStream())
-                        {
-                            int totalLen = 0;
-                            using (MemoryStream lenStream = new MemoryStream())
-                            {
-                                int recvv = 0;
-                                while (recvv < 4)
-                                {
-                                    int r = client.Receive(buf, 4, SocketFlags.None);
-                                    recvv += r;
-                                    lenStream.Write(buf, 0, r);
-                                }
-
-                                totalLen = BitConverter.ToInt32(lenStream.ToArray(), 0);
-                            }
-
-                            int recvLen = 0;
-                            while (recvLen < totalLen)
-                            {
-                                int rl = client.Receive(buffer, bufSize, SocketFlags.None);
-                                recv.Write(buffer, 0, rl);
-                                recvLen += rl;
-                            }
-
-                            decodeAndSet(recv.ToArray(), 0);
-                        }
+                        Console.WriteLine("recv " + len);
+                        Bitmap decoded = new Bitmap(new MemoryStream(buffer, 1, len - 1));
+                        currImageDraw.DrawImage(decoded, divideRects[buffer[0] - 1]);
+                        resetImg();
                     }
                 }
                 catch (Exception e)
@@ -172,105 +158,31 @@ namespace P2P_AV
         static byte[] nullBuf = new byte[1];
         static void encodeAndSend(Bitmap image)
         {
-            if (client != null && client.Connected)
-            {
-                if (codec == 0)
-                {
-                    if (client.Available == 0) return;
-                    client.Receive(nullBuf);
-
-                    using (MemoryStream encoder = new MemoryStream())
-                    {
-                        ImageCodecInfo jpgEncoder = GetEncoder(ImageFormat.Jpeg);
-                        EncoderParameters myEncoderParameters = new EncoderParameters(1);
-                        myEncoderParameters.Param[0] = new EncoderParameter(Encoder.Quality, encodeQuality);
-                        image.Save(encoder, jpgEncoder, myEncoderParameters);
-
-                        client.Send(BitConverter.GetBytes((int)encoder.Length));
-                        client.Send(encoder.ToArray());
-                    }
-                }
-                else if (codec == 1)
-                {
-                    encoder.Encode(image);
-                }
+            for (int i = 0; i < divideWidth * divideHeight; i++) {
+                Bitmap part = image.Clone(divideRects[i], image.PixelFormat);
+                MemoryStream ms = new MemoryStream();
+                ms.Write(new byte[] { (byte)i }, 0, 1);
+                part.Save(ms, imageCodecInfo, encoderParameters);
+                byte[] enc = ms.ToArray();
+                udpSock.SendTo(enc, remote);
             }
         }
 
-        static void H264EncoderCallback(byte[] data, int len, OpenH264Lib.Encoder.FrameType type)
+        static void resetImg()
         {
-            if (type == OpenH264Lib.Encoder.FrameType.Skip) return;
-            if (client != null && client.Connected)
+            MainWindow.current.Dispatcher.Invoke(() =>
             {
-                client.Send(BitConverter.GetBytes((int)data.Length));
-                client.Send(data);
-            }
-        }
+                var rect = new System.Drawing.Rectangle(0, 0, width, height);
 
-        static void decodeAndSet(byte[] buffer, int h264len)
-        {
-            if (buffer == null || buffer.Length == 0) return;
-            if (codec == 0)
-            {
-                using (MemoryStream str = new MemoryStream(buffer))
-                {
-                    using (Bitmap decoded = new Bitmap(str))
-                    {
-                        if (decoded == null) return;
-                        MainWindow.current.Dispatcher.Invoke(() =>
-                        {
-                            var rect = new System.Drawing.Rectangle(0, 0, decoded.Width, decoded.Height);
+                var bitmapData = currImage.LockBits(
+                rect,
+                ImageLockMode.ReadWrite,
+                System.Drawing.Imaging.PixelFormat.Format32bppRgb);
 
-                            var bitmapData = decoded.LockBits(
-                                rect,
-                                ImageLockMode.ReadWrite,
-                                System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+                writeableBitmap.WritePixels(new System.Windows.Int32Rect(0, 0, width, height), bitmapData.Scan0, width * height * 4, width * 4);
 
-                            var size = (rect.Width * rect.Height) * 4;
-                            MainWindow.current.VideoObject.Source = BitmapSource.Create(
-                                decoded.Width,
-                                decoded.Height,
-                                decoded.HorizontalResolution,
-                                decoded.VerticalResolution,
-                                PixelFormats.Bgra32,
-                                null,
-                                bitmapData.Scan0,
-                                size,
-                                bitmapData.Stride);
-                            decoded.UnlockBits(bitmapData);
-                        });
-                    }
-                }
-            }
-            else if (codec == 1)
-            {
-                using (Bitmap decoded = decoder.Decode(buffer, h264len))
-                {
-                    if (decoded == null) return;
-                    MainWindow.current.Dispatcher.Invoke(() =>
-                    {
-                        var rect = new System.Drawing.Rectangle(0, 0, decoded.Width, decoded.Height);
-
-                        var bitmapData = decoded.LockBits(
-                            rect,
-                            ImageLockMode.ReadWrite,
-                            System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-
-                        var size = (rect.Width * rect.Height) * 4;
-                        MainWindow.current.VideoObject.Source = BitmapSource.Create(
-                            decoded.Width,
-                            decoded.Height,
-                            decoded.HorizontalResolution,
-                            decoded.VerticalResolution,
-                            PixelFormats.Bgra32,
-                            null,
-                            bitmapData.Scan0,
-                            size,
-                            bitmapData.Stride);
-                        decoded.UnlockBits(bitmapData);
-                    });
-                }
-            }
+                currImage.UnlockBits(bitmapData);
+            });
         }
     }
 }

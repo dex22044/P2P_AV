@@ -38,9 +38,3 @@ C:\Users\dex22044\source\repos\P2P_sound\P2P_AV\bin\Debug\SharpDX.MediaFoundatio
 C:\Users\dex22044\source\repos\P2P_sound\P2P_AV\obj\Debug\SettingsWindow.g.cs
 C:\Users\dex22044\source\repos\P2P_sound\P2P_AV\obj\Debug\SettingsWindow.baml
 C:\Users\dex22044\source\repos\P2P_sound\P2P_AV\bin\Debug\MediaFoundation.dll
-C:\Users\dex22044\source\repos\P2P_sound\P2P_AV\bin\Debug\openh264.dll
-C:\Users\dex22044\source\repos\P2P_sound\P2P_AV\bin\Debug\OpenH264Lib.dll
-C:\Users\dex22044\source\repos\P2P_sound\P2P_AV\bin\Debug\OpenH264Lib.pdb
-C:\Users\dex22044\source\repos\P2P_sound\P2P_AV\obj\Debug\P2P_AV_Content.g.cs
-C:\Users\dex22044\source\repos\P2P_sound\P2P_AV\bin\Debug\WindowsInput.dll
-C:\Users\dex22044\source\repos\P2P_sound\P2P_AV\bin\Debug\WindowsInput.xml

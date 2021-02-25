@@ -66,8 +66,7 @@
 
                     <TextBlock Text="Тип сжатия:" Grid.Row="0" Grid.Column="0" Margin="5"/>
                     <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal">
-                        <RadioButton Content="JPEG" Margin="5" Checked="Compression_ChangedCompressionType" GroupName="Compression_CompressionType" IsChecked="True"/>
-                        <RadioButton Content="H264" Margin="5" Checked="Compression_ChangedCompressionType" GroupName="Compression_CompressionType" IsChecked="False"/>
+                        <RadioButton Content="JPEG" Margin="5" GroupName="Compression_CompressionType" IsChecked="True"/>
                     </StackPanel>
 
                     <TextBlock Text="Разрешение сжатия:" Grid.Row="1" Grid.Column="0" Margin="5"/>
@@ -77,12 +76,25 @@
                         <TextBlock Text="Высота:" Margin="5"/>
                         <TextBox x:Name="Compression_ImageHeight" Width="50" Margin="5" Text="768"/>
                     </StackPanel>
+                    <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal"/>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Шифрование">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
 
-                    <TextBlock Text="Битрейт (только H264):" Grid.Row="2" Grid.Column="0" Margin="5"/>
-                    <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal">
-                        <Slider x:Name="Compression_H264VideoBitrate" Width="170" ValueChanged="Compression_H264VideoBitrate_ValueChanged" Minimum="500" Maximum="15000"/>
-                        <TextBlock x:Name="Compression_H264VideoBitrateText" Text="500kbps"/>
-                    </StackPanel>
+                    <CheckBox Content="Включить (всё равно пока не работает)" x:Name="Encryption_OnOffCheckBox" Grid.Column="1" Grid.Row="0" Margin="5"/>
+
+                    <TextBlock Text="Ключ: " Grid.Column="0" Grid.Row="1" Margin="5"/>
+                    <TextBox Grid.Column="1" Grid.Row="1" x:Name="Encryption_KeyBox" Margin="5"/>
                 </Grid>
             </TabItem>
         </TabControl>
